@@ -1,0 +1,17 @@
+node_modules
+.vercel
+.output
+.nitro
+.tanstack
+.grok
+screenshots
+artifacts
+pglite-debug
+*.log
+.env
+.env.*
+.node_modules.lock
+.project_id
+AGENTS.md
+AGENTS.project.md
+dist
