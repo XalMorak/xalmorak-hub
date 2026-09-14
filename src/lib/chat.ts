@@ -1,10 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getSql } from "@/lib/db";
 import { authMiddleware } from "@/lib/auth/middleware";
+import { areBlocked, assertNotBlocked, pushNotice } from "@/lib/social";
 import {
   IMAGE_LIMIT,
   VIDEO_LIMIT,
   assertRateLimit,
+  assertUserId,
   decodeBase64Payload,
   displayNameFor,
   inspectImage,
@@ -65,6 +67,11 @@ export const searchPeople = createServerFn({ method: "GET" })
     const rows = await sql<{ id: string; name: string }>`
       select id, name from "user"
       where name ilike ${pattern} and id <> ${context.userId}
+        and id not in (
+          select blocked_id from blocks where blocker_id = ${context.userId}
+          union
+          select blocker_id from blocks where blocked_id = ${context.userId}
+        )
       order by name asc
       limit 8
     `;
@@ -135,6 +142,7 @@ export const openDirect = createServerFn({ method: "POST" })
   })
   .handler(async ({ context, data }): Promise<{ id: number }> => {
     if (data.userId === context.userId) throw new Error("Өөртөө бичихгүй");
+    await assertNotBlocked(context.userId, data.userId);
     const sql = await getSql();
     const exists = await sql<{ id: string }>`
       select id from "user" where id = ${data.userId} limit 1
@@ -208,11 +216,22 @@ export const inviteToGroup = createServerFn({ method: "POST" })
       select id from "user" where id = ${data.userId} limit 1
     `;
     if (!person[0]) throw new Error("Хэрэглэгч олдсонгүй");
+    await assertNotBlocked(context.userId, data.userId);
     await sql`
       insert into conversation_members (conversation_id, user_id, role)
       values (${data.conversationId}, ${data.userId}, 'member')
       on conflict do nothing
     `;
+    const title = await sql<{ title: string | null }>`
+      select title from conversations where id = ${data.conversationId} limit 1
+    `;
+    await pushNotice({
+      userId: data.userId,
+      kind: "invite",
+      title: "Бүлэгт урилаа",
+      body: title[0]?.title || "Бүлэг",
+      href: `/messages/${data.conversationId}`,
+    });
   });
 
 export const listChatMessages = createServerFn({ method: "GET" })
@@ -260,6 +279,19 @@ export const postChatMessage = createServerFn({ method: "POST" })
   })
   .handler(async ({ context, data }): Promise<ChatMessage> => {
     await requireMember(data.conversationId, context.userId);
+    const sql = await getSql();
+    const others = await sql<{ user_id: string }>`
+      select user_id from conversation_members
+      where conversation_id = ${data.conversationId} and user_id <> ${context.userId}
+    `;
+    for (const other of others) {
+      if (await areBlocked(context.userId, other.user_id)) {
+        const kind = await sql<{ kind: string }>`
+          select kind from conversations where id = ${data.conversationId} limit 1
+        `;
+        if (kind[0]?.kind === "dm") throw new Error("Хандах эрхгүй");
+      }
+    }
     await assertRateLimit(context.userId, "chat");
 
     let kind: string | null = null;
@@ -295,7 +327,6 @@ export const postChatMessage = createServerFn({ method: "POST" })
 
     if (!data.body && !payload) throw new Error("Хоосон зурвас");
 
-    const sql = await getSql();
     const name = await displayNameFor(context.userId);
     const rows = await sql<ChatMessage>`
       insert into direct_messages (
@@ -312,6 +343,16 @@ export const postChatMessage = createServerFn({ method: "POST" })
     `;
     const row = rows[0];
     if (!row) throw new Error("Илгээгдсэнгүй");
+    for (const other of others) {
+      if (await areBlocked(context.userId, other.user_id)) continue;
+      await pushNotice({
+        userId: other.user_id,
+        kind: "chat",
+        title: name,
+        body: data.body.slice(0, 80) || "Медиа",
+        href: `/messages/${data.conversationId}`,
+      });
+    }
     return { ...row, created_at: asIso(row.created_at) };
   });
 
@@ -363,4 +404,71 @@ export const getConversation = createServerFn({ method: "GET" })
         role: m.role,
       })),
     };
+  });
+
+export const kickFromGroup = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((input: { conversationId: number; userId: string }) => {
+    const conversationId = Number(input.conversationId);
+    if (!Number.isInteger(conversationId)) throw new Error("Чат буруу");
+    return { conversationId, userId: assertUserId(input.userId) };
+  })
+  .handler(async ({ context, data }): Promise<void> => {
+    if (data.userId === context.userId) throw new Error("Өөрийгөө гаргахгүй");
+    const sql = await getSql();
+    const me = await sql<{ role: string; kind: string }>`
+      select cm.role, c.kind
+      from conversation_members cm
+      join conversations c on c.id = cm.conversation_id
+      where cm.conversation_id = ${data.conversationId} and cm.user_id = ${context.userId}
+      limit 1
+    `;
+    if (!me[0] || me[0].kind !== "group" || me[0].role !== "owner") {
+      throw new Error("Хандах эрхгүй");
+    }
+    await sql`
+      delete from conversation_members
+      where conversation_id = ${data.conversationId} and user_id = ${data.userId}
+    `;
+    await pushNotice({
+      userId: data.userId,
+      kind: "kick",
+      title: "Бүлгээс гаргалаа",
+      href: "/messages",
+    });
+  });
+
+export const leaveGroup = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator((input: { conversationId: number }) => {
+    const conversationId = Number(input.conversationId);
+    if (!Number.isInteger(conversationId)) throw new Error("Чат буруу");
+    return { conversationId };
+  })
+  .handler(async ({ context, data }): Promise<void> => {
+    await requireMember(data.conversationId, context.userId);
+    const sql = await getSql();
+    const conv = await sql<{ kind: string }>`
+      select kind from conversations where id = ${data.conversationId} limit 1
+    `;
+    if (conv[0]?.kind !== "group") throw new Error("Зөвхөн бүлэг");
+    await sql`
+      delete from conversation_members
+      where conversation_id = ${data.conversationId} and user_id = ${context.userId}
+    `;
+    const remaining = await sql<{ user_id: string; role: string }>`
+      select user_id, role from conversation_members
+      where conversation_id = ${data.conversationId}
+      order by joined_at asc
+    `;
+    if (remaining.length === 0) {
+      await sql`delete from conversations where id = ${data.conversationId}`;
+      return;
+    }
+    if (!remaining.some((m) => m.role === "owner")) {
+      await sql`
+        update conversation_members set role = 'owner'
+        where conversation_id = ${data.conversationId} and user_id = ${remaining[0]!.user_id}
+      `;
+    }
   });

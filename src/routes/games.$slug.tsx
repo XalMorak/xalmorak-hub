@@ -12,6 +12,8 @@ import { getDeals, getSteamGame, parseSteamSlug, steamDetailToGame } from "@/lib
 import { listReviews, postReview } from "@/lib/community";
 import { genreLabel, getGame, platformLabel, type Game } from "@/lib/games";
 import { useI18n } from "@/lib/locale";
+import { SafeMedia, fileToDataUrl, IMAGE_MAX, VIDEO_MAX } from "@/components/safe-media";
+import { listClips, postClip } from "@/lib/gallery";
 import { listWishlist, toggleWishlist } from "@/lib/wishlist";
 import { cn } from "@/lib/utils";
 
@@ -82,6 +84,8 @@ function GameDetail() {
     },
   });
 
+  const [clipUrl, setClipUrl] = useState("");
+  const [showClipUrl, setShowClipUrl] = useState(false);
   const [rating, setRating] = useState(8);
   const [body, setBody] = useState("");
 
@@ -100,6 +104,21 @@ function GameDetail() {
       }
       toast.error(err.message || "Амжилтгүй боллоо");
     },
+  });
+
+  const clips = useQuery({
+    queryKey: ["clips", slug],
+    queryFn: () => listClips({ data: { slug } }),
+  });
+
+  const clipMut = useMutation({
+    mutationFn: (payload: { image?: string; video?: string; videoUrl?: string }) =>
+      postClip({ data: { slug, ...payload } }),
+    onSuccess: () => {
+      setClipUrl("");
+      void queryClient.invalidateQueries({ queryKey: ["clips", slug] });
+    },
+    onError: (err: Error) => toast.error(err.message),
   });
 
   const wishMut = useMutation({
@@ -221,6 +240,9 @@ function GameDetail() {
                 {wished ? t("wishRemove") : t("wishAdd")}
               </Button>
             </SignInGate>
+            <Button asChild variant="outline">
+              <Link to="/party">{t("navParty")}</Link>
+            </Button>
             {metacriticUrl ? (
               <Button asChild variant="outline">
                 <a href={metacriticUrl} target="_blank" rel="noopener noreferrer">
@@ -282,7 +304,15 @@ function GameDetail() {
               {(reviews.data ?? []).map((review) => (
                 <li key={review.id} className="px-5 py-4">
                   <div className="flex items-baseline justify-between gap-3">
-                    <p className="text-sm font-medium text-fg">{review.author_name}</p>
+                    <p className="text-sm font-medium text-fg">
+                      <Link
+                        to="/u/$id"
+                        params={{ id: review.user_id }}
+                        className="hover:underline"
+                      >
+                        {review.author_name}
+                      </Link>
+                    </p>
                     <span className="tabular-nums text-sm text-accent">
                       {review.rating}/10
                     </span>
@@ -352,6 +382,95 @@ function GameDetail() {
             </form>
           </SignInGate>
         </div>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="font-display text-2xl text-fg">{t("gallery")}</h2>
+        <SignInGate
+          fallback={
+            <p className="text-sm text-muted">{t("needSignIn")}</p>
+          }
+        >
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                const input = document.createElement("input");
+                input.type = "file";
+                input.accept = "image/jpeg,image/png,image/webp";
+                input.onchange = () => {
+                  const file = input.files?.[0];
+                  if (!file) return;
+                  void fileToDataUrl(file, IMAGE_MAX)
+                    .then((image) => clipMut.mutate({ image }))
+                    .catch(() => toast.error(t("fileRejected")));
+                };
+                input.click();
+              }}
+            >
+              {t("attachImage")}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                const input = document.createElement("input");
+                input.type = "file";
+                input.accept = "video/mp4,video/webm";
+                input.onchange = () => {
+                  const file = input.files?.[0];
+                  if (!file) return;
+                  void fileToDataUrl(file, VIDEO_MAX)
+                    .then((video) => clipMut.mutate({ video }))
+                    .catch(() => toast.error(t("fileRejected")));
+                };
+                input.click();
+              }}
+            >
+              {t("attachVideo")}
+            </Button>
+            <Button type="button" variant="outline" onClick={() => setShowClipUrl((v) => !v)}>
+              {t("videoUrl")}
+            </Button>
+          </div>
+          {showClipUrl ? (
+            <form
+              className="mt-3 flex gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (!clipUrl.trim()) return;
+                clipMut.mutate({ videoUrl: clipUrl.trim() });
+              }}
+            >
+              <input
+                value={clipUrl}
+                onChange={(e) => setClipUrl(e.target.value)}
+                placeholder={t("videoHint")}
+                className="h-11 flex-1 rounded-md bg-raised px-3.5 text-sm text-fg shadow-[var(--shadow-border)]"
+              />
+              <Button type="submit">{t("addClip")}</Button>
+            </form>
+          ) : null}
+        </SignInGate>
+        {(clips.data ?? []).length === 0 ? (
+          <p className="text-sm text-muted">{t("emptyGallery")}</p>
+        ) : (
+          <ul className="grid gap-4 sm:grid-cols-2">
+            {(clips.data ?? []).map((clip) => (
+              <li key={clip.id} className="rounded-xl bg-surface p-4 shadow-[var(--shadow-border)]">
+                <Link
+                  to="/u/$id"
+                  params={{ id: clip.user_id }}
+                  className="text-sm font-medium text-fg hover:underline"
+                >
+                  {clip.author_name}
+                </Link>
+                <SafeMedia message={clip} />
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </main>
   );

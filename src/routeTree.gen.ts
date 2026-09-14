@@ -10,19 +10,40 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AlertsRouteImport } from './routes/alerts'
+import { Route as BoardRouteImport } from './routes/board'
+import { Route as FriendsRouteImport } from './routes/friends'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LoungeRouteImport } from './routes/lounge'
+import { Route as MeRouteImport } from './routes/me'
 import { Route as MessagesRouteImport } from './routes/messages'
+import { Route as PartyRouteImport } from './routes/party'
 import { Route as WishlistRouteImport } from './routes/wishlist'
 import { Route as GamesIndexRouteImport } from './routes/games.index'
 import { Route as GamesSlugRouteImport } from './routes/games.$slug'
 import { Route as MessagesIndexRouteImport } from './routes/messages.index'
 import { Route as MessagesIdRouteImport } from './routes/messages.$id'
+import { Route as UIdRouteImport } from './routes/u.$id'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AlertsRoute = AlertsRouteImport.update({
+  id: '/alerts',
+  path: '/alerts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BoardRoute = BoardRouteImport.update({
+  id: '/board',
+  path: '/board',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FriendsRoute = FriendsRouteImport.update({
+  id: '/friends',
+  path: '/friends',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -35,9 +56,19 @@ const LoungeRoute = LoungeRouteImport.update({
   path: '/lounge',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MeRoute = MeRouteImport.update({
+  id: '/me',
+  path: '/me',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MessagesRoute = MessagesRouteImport.update({
   id: '/messages',
   path: '/messages',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartyRoute = PartyRouteImport.update({
+  id: '/party',
+  path: '/party',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WishlistRoute = WishlistRouteImport.update({
@@ -65,6 +96,11 @@ const MessagesIdRoute = MessagesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => MessagesRoute,
 } as any)
+const UIdRoute = UIdRouteImport.update({
+  id: '/u/$id',
+  path: '/u/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -73,23 +109,35 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/alerts': typeof AlertsRoute
+  '/board': typeof BoardRoute
+  '/friends': typeof FriendsRoute
   '/login': typeof LoginRoute
   '/lounge': typeof LoungeRoute
+  '/me': typeof MeRoute
   '/messages': typeof MessagesRouteWithChildren
+  '/party': typeof PartyRoute
   '/wishlist': typeof WishlistRoute
   '/games/$slug': typeof GamesSlugRoute
   '/messages/$id': typeof MessagesIdRoute
+  '/u/$id': typeof UIdRoute
   '/games/': typeof GamesIndexRoute
   '/messages/': typeof MessagesIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/alerts': typeof AlertsRoute
+  '/board': typeof BoardRoute
+  '/friends': typeof FriendsRoute
   '/login': typeof LoginRoute
   '/lounge': typeof LoungeRoute
+  '/me': typeof MeRoute
+  '/party': typeof PartyRoute
   '/wishlist': typeof WishlistRoute
   '/games/$slug': typeof GamesSlugRoute
   '/messages/$id': typeof MessagesIdRoute
+  '/u/$id': typeof UIdRoute
   '/games': typeof GamesIndexRoute
   '/messages': typeof MessagesIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -97,12 +145,18 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/alerts': typeof AlertsRoute
+  '/board': typeof BoardRoute
+  '/friends': typeof FriendsRoute
   '/login': typeof LoginRoute
   '/lounge': typeof LoungeRoute
+  '/me': typeof MeRoute
   '/messages': typeof MessagesRouteWithChildren
+  '/party': typeof PartyRoute
   '/wishlist': typeof WishlistRoute
   '/games/$slug': typeof GamesSlugRoute
   '/messages/$id': typeof MessagesIdRoute
+  '/u/$id': typeof UIdRoute
   '/games/': typeof GamesIndexRoute
   '/messages/': typeof MessagesIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -111,35 +165,53 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/alerts'
+    | '/board'
+    | '/friends'
     | '/login'
     | '/lounge'
+    | '/me'
     | '/messages'
+    | '/party'
     | '/wishlist'
     | '/games/$slug'
     | '/messages/$id'
+    | '/u/$id'
     | '/games/'
     | '/messages/'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/alerts'
+    | '/board'
+    | '/friends'
     | '/login'
     | '/lounge'
+    | '/me'
+    | '/party'
     | '/wishlist'
     | '/games/$slug'
     | '/messages/$id'
+    | '/u/$id'
     | '/games'
     | '/messages'
     | '/api/auth/$'
   id:
     | '__root__'
     | '/'
+    | '/alerts'
+    | '/board'
+    | '/friends'
     | '/login'
     | '/lounge'
+    | '/me'
     | '/messages'
+    | '/party'
     | '/wishlist'
     | '/games/$slug'
     | '/messages/$id'
+    | '/u/$id'
     | '/games/'
     | '/messages/'
     | '/api/auth/$'
@@ -147,11 +219,17 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AlertsRoute: typeof AlertsRoute
+  BoardRoute: typeof BoardRoute
+  FriendsRoute: typeof FriendsRoute
   LoginRoute: typeof LoginRoute
   LoungeRoute: typeof LoungeRoute
+  MeRoute: typeof MeRoute
   MessagesRoute: typeof MessagesRouteWithChildren
+  PartyRoute: typeof PartyRoute
   WishlistRoute: typeof WishlistRoute
   GamesSlugRoute: typeof GamesSlugRoute
+  UIdRoute: typeof UIdRoute
   GamesIndexRoute: typeof GamesIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
@@ -163,6 +241,27 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/alerts': {
+      id: '/alerts'
+      path: '/alerts'
+      fullPath: '/alerts'
+      preLoaderRoute: typeof AlertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/board': {
+      id: '/board'
+      path: '/board'
+      fullPath: '/board'
+      preLoaderRoute: typeof BoardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/friends': {
+      id: '/friends'
+      path: '/friends'
+      fullPath: '/friends'
+      preLoaderRoute: typeof FriendsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -179,11 +278,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoungeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/me': {
+      id: '/me'
+      path: '/me'
+      fullPath: '/me'
+      preLoaderRoute: typeof MeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/messages': {
       id: '/messages'
       path: '/messages'
       fullPath: '/messages'
       preLoaderRoute: typeof MessagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/party': {
+      id: '/party'
+      path: '/party'
+      fullPath: '/party'
+      preLoaderRoute: typeof PartyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/wishlist': {
@@ -221,6 +334,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MessagesIdRouteImport
       parentRoute: typeof MessagesRoute
     }
+    '/u/$id': {
+      id: '/u/$id'
+      path: '/u/$id'
+      fullPath: '/u/$id'
+      preLoaderRoute: typeof UIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -247,11 +367,17 @@ const MessagesRouteWithChildren = MessagesRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AlertsRoute: AlertsRoute,
+  BoardRoute: BoardRoute,
+  FriendsRoute: FriendsRoute,
   LoginRoute: LoginRoute,
   LoungeRoute: LoungeRoute,
+  MeRoute: MeRoute,
   MessagesRoute: MessagesRouteWithChildren,
+  PartyRoute: PartyRoute,
   WishlistRoute: WishlistRoute,
   GamesSlugRoute: GamesSlugRoute,
+  UIdRoute: UIdRoute,
   GamesIndexRoute: GamesIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }

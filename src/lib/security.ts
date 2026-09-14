@@ -1,7 +1,6 @@
 import { getSql } from "@/lib/db";
+import { AVATAR_MAX, IMAGE_MAX, VIDEO_MAX } from "@/lib/media-limits";
 
-const MAX_IMAGE_BYTES = 350_000;
-const MAX_VIDEO_BYTES = 1_500_000;
 const MAX_MESSAGE_CHARS = 2000;
 
 const JPEG = [0xff, 0xd8, 0xff];
@@ -175,9 +174,14 @@ export function vimeoEmbed(id: string): string {
 const LIMITS: Record<string, { windowMs: number; max: number }> = {
   lounge: { windowMs: 60_000, max: 20 },
   chat: { windowMs: 60_000, max: 20 },
-  media: { windowMs: 60 * 60_000, max: 12 },
+  media: { windowMs: 60 * 60_000, max: 16 },
   group: { windowMs: 24 * 60 * 60_000, max: 8 },
   review: { windowMs: 60_000, max: 8 },
+  friend: { windowMs: 60_000, max: 12 },
+  lfg: { windowMs: 60_000, max: 6 },
+  report: { windowMs: 60 * 60_000, max: 8 },
+  gallery: { windowMs: 60 * 60_000, max: 10 },
+  profile: { windowMs: 60_000, max: 8 },
 };
 
 export async function assertRateLimit(userId: string, kind: keyof typeof LIMITS) {
@@ -212,8 +216,24 @@ export function assertSlug(slug: string): string {
   return s;
 }
 
-export const IMAGE_LIMIT = MAX_IMAGE_BYTES;
-export const VIDEO_LIMIT = MAX_VIDEO_BYTES;
+export function assertUserId(id: string): string {
+  const s = id.trim();
+  if (!/^[A-Za-z0-9._:-]{1,80}$/.test(s)) throw new Error("Хэрэглэгч буруу");
+  return s;
+}
+
+export function assertHref(href: string): string {
+  const s = href.trim().slice(0, 180);
+  if (!s.startsWith("/")) throw new Error("Холбоос буруу");
+  if (s.includes("://") || s.includes("//") || s.includes("\\")) {
+    throw new Error("Холбоос буруу");
+  }
+  return s;
+}
+
+export const IMAGE_LIMIT = IMAGE_MAX;
+export const VIDEO_LIMIT = VIDEO_MAX;
+export const AVATAR_LIMIT = AVATAR_MAX;
 
 const CATALOG_HOSTS = new Set([
   "store.steampowered.com",

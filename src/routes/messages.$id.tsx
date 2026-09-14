@@ -11,6 +11,8 @@ import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import {
   getConversation,
   inviteToGroup,
+  kickFromGroup,
+  leaveGroup,
   listChatMessages,
   postChatMessage,
   searchPeople,
@@ -95,6 +97,24 @@ function ThreadPage() {
     onError: (err: Error) => toast.error(err.message),
   });
 
+  const kickMut = useMutation({
+    mutationFn: (userId: string) =>
+      kickFromGroup({ data: { conversationId, userId } }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["conversation", conversationId] });
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const leaveMut = useMutation({
+    mutationFn: () => leaveGroup({ data: { conversationId } }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["conversations"] });
+      window.location.href = "/messages";
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
   useEffect(() => {
     const el = listRef.current;
     if (!el) return;
@@ -149,10 +169,40 @@ function ThreadPage() {
           <h2 className="truncate font-display text-xl text-fg">
             {convo.data?.title ?? t("loading")}
           </h2>
-          <p className="mt-1 truncate text-xs text-subtle">
+          <p className="mt-1 text-xs text-subtle">
             {t("members")}:{" "}
             {(convo.data?.members ?? []).map((m) => m.name).join(", ")}
           </p>
+          {convo.data?.kind === "group" ? (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {(convo.data.members ?? []).map((m) => {
+                const selfRole = convo.data?.members.find((x) => x.id === user?.id)?.role;
+                return (
+                  <span key={m.id} className="inline-flex items-center gap-1 text-xs text-muted">
+                    <Link to="/u/$id" params={{ id: m.id }} className="hover:text-fg">
+                      {m.name}
+                    </Link>
+                    {selfRole === "owner" && m.id !== user?.id ? (
+                      <button
+                        type="button"
+                        className="h-11 px-1 text-subtle hover:text-fg"
+                        onClick={() => kickMut.mutate(m.id)}
+                      >
+                        {t("kick")}
+                      </button>
+                    ) : null}
+                  </span>
+                );
+              })}
+              <button
+                type="button"
+                className="h-11 text-xs text-subtle hover:text-fg"
+                onClick={() => leaveMut.mutate()}
+              >
+                {t("leaveGroup")}
+              </button>
+            </div>
+          ) : null}
         </div>
         {convo.data?.kind === "group" ? (
           <div className="w-44 shrink-0">

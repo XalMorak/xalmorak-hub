@@ -39,7 +39,12 @@ export function AuthSlot() {
             {label.charAt(0).toUpperCase()}
           </span>
         )}
-        <span className="hidden max-w-28 truncate text-sm text-fg sm:inline">{label}</span>
+        <Link
+          to="/me"
+          className="hidden max-w-28 truncate text-sm text-fg hover:underline sm:inline"
+        >
+          {label}
+        </Link>
         {authEnabled && !gateSession ? (
           <Button
             variant="ghost"

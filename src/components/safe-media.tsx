@@ -1,7 +1,11 @@
-import type { ChatMessage } from "@/lib/chat";
+import { IMAGE_MAX, VIDEO_MAX } from "@/lib/media-limits";
 
-export const IMAGE_MAX = 350_000;
-export const VIDEO_MAX = 1_500_000;
+export { IMAGE_MAX, VIDEO_MAX };
+
+export type MediaBits = {
+  attachment_kind: string | null;
+  attachment_data: string | null;
+};
 
 const IMAGE_DATA = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+=*$/;
 const VIDEO_DATA = /^data:video\/(mp4|webm);base64,[A-Za-z0-9+/]+=*$/;
@@ -22,7 +26,7 @@ function isHttpsMediaFile(src: string): boolean {
   }
 }
 
-export function SafeMedia({ message }: { message: ChatMessage }) {
+export function SafeMedia({ message }: { message: MediaBits }) {
   const data = message.attachment_data;
   if (!data) return null;
 

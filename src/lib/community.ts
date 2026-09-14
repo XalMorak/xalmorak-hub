@@ -137,7 +137,8 @@ export const postReview = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator((input: { slug: string; rating: number; body: string }) => {
     const slug = assertSlug(input.slug);
-    const body = input.body.trim();
+    const body = sanitizeChatBody(input.body.trim());
+
     const rating = Number(input.rating);
     if (!Number.isInteger(rating) || rating < 1 || rating > 10) {
       throw new Error("Үнэлгээ 1–10 байх ёстой");

@@ -1,6 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { AuthSlot } from "@/components/auth-slot";
 import { LogoMark } from "@/components/logo";
+import { NoticeBell } from "@/components/notice-bell";
 import { useI18n } from "@/lib/locale";
 import { cn } from "@/lib/utils";
 
@@ -12,8 +13,9 @@ export function SiteHeader() {
     { to: "/", label: t("navHome") },
     { to: "/games", label: t("navGames") },
     { to: "/lounge", label: t("navLounge") },
+    { to: "/party", label: t("navParty") },
     { to: "/messages", label: t("navChat") },
-    { to: "/wishlist", label: t("navWish") },
+    { to: "/board", label: t("navBoard") },
   ] as const;
 
   return (
@@ -57,6 +59,7 @@ export function SiteHeader() {
           >
             {locale === "mn" ? "EN" : "MN"}
           </button>
+          <NoticeBell />
           <AuthSlot />
         </div>
       </div>
