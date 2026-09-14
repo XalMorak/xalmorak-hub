@@ -21,6 +21,31 @@ const YOUTUBE_HOSTS = new Set([
 
 const VIMEO_HOSTS = new Set(["vimeo.com", "www.vimeo.com", "player.vimeo.com"]);
 
+function isPrivateHost(host: string): boolean {
+  const h = host.replace(/^\[|\]$/g, "").toLowerCase();
+  if (
+    h === "localhost" ||
+    h.endsWith(".localhost") ||
+    h.endsWith(".local") ||
+    h.endsWith(".internal") ||
+    h.endsWith(".lan")
+  ) {
+    return true;
+  }
+  if (h === "::1" || h.startsWith("fe80:") || h.startsWith("fc") || h.startsWith("fd")) {
+    return true;
+  }
+  if (/^(127|10|0)\./.test(h) || h.startsWith("192.168.") || h.startsWith("169.254.")) {
+    return true;
+  }
+  const m = /^172\.(\d+)\./.exec(h);
+  if (m) {
+    const n = Number(m[1]);
+    if (n >= 16 && n <= 31) return true;
+  }
+  return false;
+}
+
 function startsWith(bytes: Uint8Array, sig: number[]): boolean {
   if (bytes.length < sig.length) return false;
   return sig.every((b, i) => bytes[i] === b);
@@ -81,7 +106,14 @@ export function inspectVideo(bytes: Uint8Array): { mime: string } {
 }
 
 export function sanitizeChatBody(input: string): string {
-  const body = input.replace(/\0/g, "").trim();
+  const body = input
+    .replace(/\0/g, "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/javascript:/gi, "")
+    .replace(/vbscript:/gi, "")
+    .replace(/data:\s*text\/html/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
   if (body.length > MAX_MESSAGE_CHARS) {
     throw new Error("Зурвас хэт урт байна");
   }
@@ -103,6 +135,7 @@ export function parseVideoUrl(raw: string): SafeVideoLink {
   if (url.protocol !== "https:") throw new Error("Зөвхөн HTTPS холбоос");
   if (url.username || url.password) throw new Error("Холбоос буруу");
   const host = url.hostname.toLowerCase();
+  if (isPrivateHost(host)) throw new Error("Холбоос зөвшөөрөгдөөгүй");
 
   if (YOUTUBE_HOSTS.has(host)) {
     let id = "";
