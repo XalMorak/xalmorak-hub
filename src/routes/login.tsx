@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { GROK_PROVIDERS, authClient, authEnabled, signIn } from "@/lib/auth/client";
 import { useCurrentUserState } from "@/lib/auth/use-current-user";
 import { LogoMark } from "@/components/logo";
@@ -10,19 +10,15 @@ import { useI18n } from "@/lib/locale";
 
 /** Grok's Google/X broker only accepts `*.grok-sandbox.com` callbacks. */
 function brokerOAuthAllowed(host: string): boolean {
-  const name = host.split(":")[0] ?? "";
   return (
-    name.endsWith(".grok-sandbox.com") ||
-    name === "localhost" ||
-    name === "127.0.0.1" ||
-    name === "[::1]"
+    host.endsWith(".grok-sandbox.com") ||
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host === "[::1]"
   );
 }
 
 export const Route = createFileRoute("/login")({
-  loader: ({ request }) => ({
-    brokerOAuth: brokerOAuthAllowed(new URL(request.url).host),
-  }),
   component: Login,
 });
 
@@ -40,14 +36,18 @@ function persistSessionToken(token: unknown) {
 
 function Login() {
   const { t } = useI18n();
-  const { brokerOAuth } = Route.useLoaderData();
   const { user, isPending } = useCurrentUserState();
+  const [brokerOAuth, setBrokerOAuth] = useState(false);
   const [mode, setMode] = useState<"in" | "up">("in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+
+  useEffect(() => {
+    setBrokerOAuth(brokerOAuthAllowed(window.location.hostname));
+  }, []);
 
   if (isPending) {
     return (
