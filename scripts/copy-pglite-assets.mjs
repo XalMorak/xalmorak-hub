@@ -55,15 +55,7 @@ for (const dest of libDirs) {
   }
 }
 
-const wrapSource = `if (!process.env.BETTER_AUTH_URL) {
-  const host =
-    process.env.VERCEL_PROJECT_PRODUCTION_URL ||
-    process.env.VERCEL_URL ||
-    "xalmorak-hub-xalmorak.vercel.app";
-  process.env.BETTER_AUTH_URL = String(host).startsWith("http")
-    ? String(host)
-    : \`https://\${host}\`;
-}
+const wrapSource = `process.env.BETTER_AUTH_URL = "https://xalmorak-hub-xalmorak.vercel.app";
 const mod = await import("./_app.mjs");
 export default mod.default;
 `;
