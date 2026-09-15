@@ -60,6 +60,8 @@ export const STRINGS = {
     loginTitle: "Нэвтрэх",
     loginBody:
       "Чат, үнэлгээ, жагсаалт — бүртгэлтэй орно. Имэйл, Google эсвэл X.",
+    loginBodyPublic:
+      "Чат, үнэлгээ, жагсаалт — и-мэйл + нууц үгээр бүртгүүлээд нэвтэрнэ үү.",
     continueWith: "-ээр үргэлжлүүлэх",
     backHome: "Нүүр рүү буцах",
     year: "Он",
@@ -216,6 +218,8 @@ export const STRINGS = {
     loginTitle: "Sign in",
     loginBody:
       "Chat, ratings, and lists need an account. Email, Google, or X.",
+    loginBodyPublic:
+      "Chat, ratings, and lists — create an account with email and password.",
     continueWith: "Continue with ",
     backHome: "Back home",
     year: "Year",

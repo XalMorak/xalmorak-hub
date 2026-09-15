@@ -8,7 +8,23 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/lib/locale";
 
-export const Route = createFileRoute("/login")({ component: Login });
+/** Grok's Google/X broker only accepts `*.grok-sandbox.com` callbacks. */
+function brokerOAuthAllowed(host: string): boolean {
+  const name = host.split(":")[0] ?? "";
+  return (
+    name.endsWith(".grok-sandbox.com") ||
+    name === "localhost" ||
+    name === "127.0.0.1" ||
+    name === "[::1]"
+  );
+}
+
+export const Route = createFileRoute("/login")({
+  loader: ({ request }) => ({
+    brokerOAuth: brokerOAuthAllowed(new URL(request.url).host),
+  }),
+  component: Login,
+});
 
 /** Same key the auth client uses for the live-preview bearer. */
 const BEARER_KEY = "grok-auth.bearer-token";
@@ -24,6 +40,7 @@ function persistSessionToken(token: unknown) {
 
 function Login() {
   const { t } = useI18n();
+  const { brokerOAuth } = Route.useLoaderData();
   const { user, isPending } = useCurrentUserState();
   const [mode, setMode] = useState<"in" | "up">("in");
   const [email, setEmail] = useState("");
@@ -102,7 +119,9 @@ function Login() {
           <h1 className="font-display text-3xl tracking-tight text-fg">
             {mode === "up" ? t("createAccount") : t("loginTitle")}
           </h1>
-          <p className="text-sm leading-normal text-muted">{t("loginBody")}</p>
+          <p className="text-sm leading-normal text-muted">
+            {t(brokerOAuth ? "loginBody" : "loginBodyPublic")}
+          </p>
         </div>
 
         {authEnabled ? (
@@ -168,30 +187,34 @@ function Login() {
               </button>
             </form>
 
-            <div className="flex items-center gap-3">
-              <span className="h-px flex-1 bg-border" />
-              <span className="text-xs uppercase tracking-wide text-subtle">{t("orDivider")}</span>
-              <span className="h-px flex-1 bg-border" />
-            </div>
+            {brokerOAuth ? (
+              <>
+                <div className="flex items-center gap-3">
+                  <span className="h-px flex-1 bg-border" />
+                  <span className="text-xs uppercase tracking-wide text-subtle">{t("orDivider")}</span>
+                  <span className="h-px flex-1 bg-border" />
+                </div>
 
-            <div className="grid gap-3">
-              {GROK_PROVIDERS.map((p) => (
-                <Button
-                  key={p.providerId}
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  disabled={Boolean(busy)}
-                  onClick={() => onOAuth(p.providerId)}
-                >
-                  {busy === p.providerId
-                    ? t("signingIn")
-                    : p.idp === "google"
-                      ? t("continueGoogle")
-                      : t("continueX")}
-                </Button>
-              ))}
-            </div>
+                <div className="grid gap-3">
+                  {GROK_PROVIDERS.map((p) => (
+                    <Button
+                      key={p.providerId}
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      disabled={Boolean(busy)}
+                      onClick={() => onOAuth(p.providerId)}
+                    >
+                      {busy === p.providerId
+                        ? t("signingIn")
+                        : p.idp === "google"
+                          ? t("continueGoogle")
+                          : t("continueX")}
+                    </Button>
+                  ))}
+                </div>
+              </>
+            ) : null}
           </div>
         ) : (
           <p className="text-sm text-muted">{t("needSignIn")}</p>
