@@ -2,15 +2,15 @@
 /**
  * After `vite build` (Nitro Vercel output):
  *  1. Copy PGLite wasm/data next to the serverless entry (missing files 500).
- *  2. Boot the function after setting BETTER_AUTH_URL from Vercel host env so
- *     email sign-in is not rejected as "Invalid origin".
+ *  2. Wrap index.mjs so BETTER_AUTH_URL is set from the Vercel host BEFORE
+ *     Better Auth loads (otherwise public email sign-in is Invalid origin).
  */
 import {
   copyFileSync,
   existsSync,
   mkdirSync,
   readdirSync,
-  readFileSync,
+  renameSync,
   writeFileSync,
 } from "node:fs";
 import { dirname, join } from "node:path";
@@ -31,14 +31,9 @@ function walk(dir, visit) {
 
 const functionsRoot = join(root, ".vercel", "output", "functions");
 const libDirs = [];
-const vcFiles = [];
+const indexFiles = [];
 walk(functionsRoot, (path, name) => {
-  if (name === ".vc-config.json") vcFiles.push(path);
-});
-walk(functionsRoot, (path, name) => {
-  /* collect dirs named _libs via parent of files inside them */
-});
-walk(join(root, ".vercel", "output"), (path, name) => {
+  if (name === "index.mjs") indexFiles.push(path);
   if (name === "pglite.wasm" || name === "electric-sql__pglite.mjs") {
     const dir = dirname(path);
     if (dir.endsWith("_libs") && !libDirs.includes(dir)) libDirs.push(dir);
@@ -60,7 +55,7 @@ for (const dest of libDirs) {
   }
 }
 
-const bootSource = `if (!process.env.BETTER_AUTH_URL) {
+const wrapSource = `if (!process.env.BETTER_AUTH_URL) {
   const host =
     process.env.VERCEL_PROJECT_PRODUCTION_URL ||
     process.env.VERCEL_URL ||
@@ -69,32 +64,27 @@ const bootSource = `if (!process.env.BETTER_AUTH_URL) {
     ? String(host)
     : \`https://\${host}\`;
 }
-const mod = await import("./index.mjs");
+const mod = await import("./_app.mjs");
 export default mod.default;
 `;
 
-let boots = 0;
-const configs = vcFiles.length
-  ? vcFiles
-  : [join(functionsRoot, "__server.func", ".vc-config.json")];
-for (const vcPath of configs) {
-  const dir = dirname(vcPath);
-  writeFileSync(join(dir, "boot.mjs"), bootSource);
-  boots += 1;
-  if (existsSync(vcPath)) {
-    const vc = JSON.parse(readFileSync(vcPath, "utf8"));
-    vc.handler = "boot.mjs";
-    writeFileSync(vcPath, `${JSON.stringify(vc, null, 2)}\n`);
-  }
+let wraps = 0;
+for (const indexPath of indexFiles) {
+  const dir = dirname(indexPath);
+  const appPath = join(dir, "_app.mjs");
+  if (existsSync(appPath)) continue;
+  renameSync(indexPath, appPath);
+  writeFileSync(indexPath, wrapSource);
+  wraps += 1;
 }
 
 const markerDir = join(root, ".vercel", "output", "static");
 mkdirSync(markerDir, { recursive: true });
 writeFileSync(
   join(markerDir, "boot-ok.txt"),
-  `copied=${copied} libs=${libDirs.length} boots=${boots} vc=${vcFiles.length}\n`,
+  `copied=${copied} libs=${libDirs.length} wraps=${wraps} indexes=${indexFiles.length}\n`,
 );
 
 console.log(
-  `[pglite] copied=${copied} libs=${libDirs.length} boots=${boots} vc=${vcFiles.length}`,
+  `[pglite] copied=${copied} libs=${libDirs.length} wraps=${wraps} indexes=${indexFiles.length}`,
 );
