@@ -10,7 +10,7 @@ import { useI18n } from "@/lib/locale";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/games/")({
-  loader: () => listReviewStats(),
+  loader: () => listReviewStats().catch(() => []),
   component: GamesPage,
 });
 

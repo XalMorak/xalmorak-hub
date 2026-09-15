@@ -13,10 +13,10 @@ import { useI18n } from "@/lib/locale";
 
 export const Route = createFileRoute("/")({
   loader: async () => {
-    const [stats, recent, steam] = await Promise.all([
-      listReviewStats(),
-      listRecentMessages(),
-      listFeaturedSteam(),
+    const steam = await listFeaturedSteam().catch(() => []);
+    const [stats, recent] = await Promise.all([
+      listReviewStats().catch(() => []),
+      listRecentMessages().catch(() => []),
     ]);
     return { stats, recent, steam };
   },

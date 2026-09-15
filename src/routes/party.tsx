@@ -12,7 +12,7 @@ import { listParty, postParty } from "@/lib/party";
 import { REGIONS, regionLabel } from "@/lib/regions";
 
 export const Route = createFileRoute("/party")({
-  loader: () => listParty({ data: { region: "" } }),
+  loader: () => listParty({ data: { region: "" } }).catch(() => []),
   component: PartyPage,
 });
 

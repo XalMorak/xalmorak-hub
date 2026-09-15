@@ -5,7 +5,13 @@ import { getGame } from "@/lib/games";
 import { useI18n } from "@/lib/locale";
 
 export const Route = createFileRoute("/board")({
-  loader: () => getBoard(),
+  loader: () =>
+    getBoard().catch(() => ({
+      weekGames: [],
+      reviewers: [],
+      voices: [],
+      generated_at: new Date().toISOString(),
+    })),
   component: BoardPage,
 });
 
