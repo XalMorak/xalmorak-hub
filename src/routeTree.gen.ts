@@ -19,6 +19,7 @@ import { Route as MeRouteImport } from './routes/me'
 import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as PartyRouteImport } from './routes/party'
 import { Route as WishlistRouteImport } from './routes/wishlist'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as GamesIndexRouteImport } from './routes/games.index'
 import { Route as GamesSlugRouteImport } from './routes/games.$slug'
 import { Route as MessagesIndexRouteImport } from './routes/messages.index'
@@ -76,6 +77,11 @@ const WishlistRoute = WishlistRouteImport.update({
   path: '/wishlist',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const GamesIndexRoute = GamesIndexRouteImport.update({
   id: '/games/',
   path: '/games/',
@@ -118,6 +124,7 @@ export interface FileRoutesByFullPath {
   '/messages': typeof MessagesRouteWithChildren
   '/party': typeof PartyRoute
   '/wishlist': typeof WishlistRoute
+  '/api/health': typeof ApiHealthRoute
   '/games/$slug': typeof GamesSlugRoute
   '/messages/$id': typeof MessagesIdRoute
   '/u/$id': typeof UIdRoute
@@ -135,6 +142,7 @@ export interface FileRoutesByTo {
   '/me': typeof MeRoute
   '/party': typeof PartyRoute
   '/wishlist': typeof WishlistRoute
+  '/api/health': typeof ApiHealthRoute
   '/games/$slug': typeof GamesSlugRoute
   '/messages/$id': typeof MessagesIdRoute
   '/u/$id': typeof UIdRoute
@@ -154,6 +162,7 @@ export interface FileRoutesById {
   '/messages': typeof MessagesRouteWithChildren
   '/party': typeof PartyRoute
   '/wishlist': typeof WishlistRoute
+  '/api/health': typeof ApiHealthRoute
   '/games/$slug': typeof GamesSlugRoute
   '/messages/$id': typeof MessagesIdRoute
   '/u/$id': typeof UIdRoute
@@ -174,6 +183,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/party'
     | '/wishlist'
+    | '/api/health'
     | '/games/$slug'
     | '/messages/$id'
     | '/u/$id'
@@ -191,6 +201,7 @@ export interface FileRouteTypes {
     | '/me'
     | '/party'
     | '/wishlist'
+    | '/api/health'
     | '/games/$slug'
     | '/messages/$id'
     | '/u/$id'
@@ -209,6 +220,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/party'
     | '/wishlist'
+    | '/api/health'
     | '/games/$slug'
     | '/messages/$id'
     | '/u/$id'
@@ -228,6 +240,7 @@ export interface RootRouteChildren {
   MessagesRoute: typeof MessagesRouteWithChildren
   PartyRoute: typeof PartyRoute
   WishlistRoute: typeof WishlistRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   GamesSlugRoute: typeof GamesSlugRoute
   UIdRoute: typeof UIdRoute
   GamesIndexRoute: typeof GamesIndexRoute
@@ -306,6 +319,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WishlistRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/games/': {
       id: '/games/'
       path: '/games'
@@ -376,6 +396,7 @@ const rootRouteChildren: RootRouteChildren = {
   MessagesRoute: MessagesRouteWithChildren,
   PartyRoute: PartyRoute,
   WishlistRoute: WishlistRoute,
+  ApiHealthRoute: ApiHealthRoute,
   GamesSlugRoute: GamesSlugRoute,
   UIdRoute: UIdRoute,
   GamesIndexRoute: GamesIndexRoute,
