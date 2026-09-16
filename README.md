@@ -1,13 +1,22 @@
 # Xal'Morak Hub
 
-Gaming community site: Steam catalog, Hub ratings, public lounge, private DMs, user-created group chat, and wishlist.
+Gaming community: Steam catalog, Hub ratings, public lounge, private DMs, user-created group chat, and wishlist.
+
+## Features
+
+- Steam catalog + CheapShark deals (server-side allowlist)
+- Hub ratings and reviews
+- Public lounge and private DMs
+- User-created group chat
+- Wishlist
 
 ## Stack
 
 - TanStack Start / Router / Query
 - Postgres (Neon in production, PGLite in preview)
 - Better Auth (Google, X)
-- Steam Store API + CheapShark (server-side HTTPS allowlist)
+- Steam Store API + CheapShark
+- Vercel
 
 ## Security
 
@@ -21,8 +30,13 @@ Gaming community site: Steam catalog, Hub ratings, public lounge, private DMs, u
 
 ## Scripts
 
-```
+```bash
+npm install
 npm run dev
 npm run build
 npm run typecheck
 ```
+
+## Repo
+
+https://github.com/XalMorak/xalmorak-hub
