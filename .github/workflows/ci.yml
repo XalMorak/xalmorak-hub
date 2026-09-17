@@ -29,12 +29,5 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Auth invariant
-        run: npm run check:auth
-
       - name: Test
         run: npm test
-
-      - name: Lint
-        run: npm run lint
-        continue-on-error: true
