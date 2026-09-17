@@ -2,6 +2,8 @@
 
 Gaming community: Steam catalog, Hub ratings, public lounge, private DMs, user-created group chat, and wishlist.
 
+Repo: https://github.com/XalMorak/xalmorak-hub
+
 ## Features
 
 - Steam catalog + CheapShark deals (server-side allowlist)
@@ -28,15 +30,21 @@ Gaming community: Steam catalog, Hub ratings, public lounge, private DMs, user-c
 - Catalog fetches only `store.steampowered.com`, `steamcommunity.com`, `www.cheapshark.com` (no redirects)
 - CSP, `nosniff`, and Permissions-Policy on production responses
 
-## Scripts
+## Setup
 
 ```bash
 npm install
+cp .env.example .env   # хэрэв файл байвал
 npm run dev
-npm run build
-npm run typecheck
 ```
 
-## Repo
+Бусад шалгах:
 
-https://github.com/XalMorak/xalmorak-hub
+```bash
+npm run typecheck
+npm run build
+```
+
+## License
+
+MIT — see `LICENSE`.
