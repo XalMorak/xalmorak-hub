@@ -1,5 +1,7 @@
 # Xal'Morak Hub
 
+[![CI](https://github.com/XalMorak/xalmorak-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/XalMorak/xalmorak-hub/actions/workflows/ci.yml)
+
 Gaming community: Steam catalog, Hub ratings, public lounge, private DMs, user-created group chat, and wishlist.
 
 Repo: https://github.com/XalMorak/xalmorak-hub
@@ -42,8 +44,15 @@ npm run dev
 
 ```bash
 npm run typecheck
+npm test
 npm run build
 ```
+
+## CI/CD
+
+- **CI:** GitHub Actions — `typecheck`, `check:auth`, `test`, `lint` (`main` + PR)
+- **CD:** Vercel Git integration — `main` рүү пуш хийхэд production deploy
+- Dependabot долоо хоногт npm + Actions update PR нээнэ
 
 ## License
 
