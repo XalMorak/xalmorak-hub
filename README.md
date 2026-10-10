@@ -1,10 +1,9 @@
 # Xal'Morak Hub
 
 [![CI](https://github.com/XalMorak/xalmorak-hub/actions/workflows/ci.yml/badge.svg)](https://github.com/XalMorak/xalmorak-hub/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Gaming community: Steam catalog, Hub ratings, public lounge, private DMs, user-created group chat, and wishlist.
-
-Repo: https://github.com/XalMorak/xalmorak-hub
+Gaming community platform: Steam catalog, Hub ratings, public lounge, private DMs, user-created group chat, and wishlist.
 
 ## Features
 
@@ -24,13 +23,10 @@ Repo: https://github.com/XalMorak/xalmorak-hub
 
 ## Security
 
-- Chat membership is checked on the server; messages never leak across rooms
-- Uploads: JPEG / PNG / WebP (350KB) and MP4 / WebM (1.5MB), magic-byte inspection, HTML/SVG rejected
-- Video links: HTTPS YouTube, Vimeo, or `.mp4`/`.webm` only — localhost and private IPs blocked
-- Chat/lounge text strips HTML tags and `javascript:` payloads
-- Rate limits on lounge, chat, media, reviews, and group creation
-- Catalog fetches only `store.steampowered.com`, `steamcommunity.com`, `www.cheapshark.com` (no redirects)
-- CSP, `nosniff`, and Permissions-Policy on production responses
+- Chat membership checked on the server; messages never leak across rooms
+- Uploads: JPEG / PNG / WebP (350KB) and MP4 / WebM (1.5MB), magic-byte inspection
+- Video links: HTTPS YouTube, Vimeo, or `.mp4`/`.webm` only
+- Rate limits, CSP, `nosniff`, Permissions-Policy
 
 ## Setup
 
@@ -50,7 +46,7 @@ npm run build
 
 ## CI/CD
 
-- **CI:** GitHub Actions — `typecheck`, `check:auth`, `test`, `lint` (`main` + PR)
+- **CI:** GitHub Actions — typecheck, check:auth, test, lint (`main` + PR)
 - **CD:** Vercel Git integration — `main` рүү пуш хийхэд production deploy
 - Dependabot долоо хоногт npm + Actions update PR нээнэ
 
